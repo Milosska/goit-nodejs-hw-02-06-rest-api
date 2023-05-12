@@ -1,6 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
+const { HttpError } = require("../utils/HttpError");
 
 const contactsPath = path.join(__dirname, "contacts.json");
 
@@ -14,6 +15,9 @@ const getContactById = async (contactId) => {
   const searchedContact = contactsList.find(
     (contact) => contact.id === contactId
   );
+  if (!searchedContact) {
+    throw new HttpError(404, "Not found");
+  }
   return searchedContact || null;
 };
 
@@ -30,9 +34,9 @@ const updateContact = async (contactId, body) => {
   const editedContact = contactsList.find(
     (contact) => contact.id === contactId
   );
-  // if (!editedContact) {
-  //   throw new HttpError(404, "Contact is not found");
-  // }
+  if (!editedContact) {
+    throw new HttpError(404, "Not found");
+  }
   editedContact.name = body.name;
   editedContact.email = body.email;
   editedContact.phone = body.phone;
@@ -43,9 +47,9 @@ const updateContact = async (contactId, body) => {
 const removeContact = async (contactId) => {
   const contactsList = await listContacts();
   const index = contactsList.findIndex((contact) => contact.id === contactId);
-  // if (index === -1) {
-  //   return "Sorry, there is no contact with such ID";
-  // }
+  if (index === -1) {
+    throw new HttpError(404, "Not found");
+  }
   const [removedContact] = contactsList.splice(index, 1);
   await fs.writeFile(contactsPath, JSON.stringify(contactsList, null, 2));
   return removedContact;
