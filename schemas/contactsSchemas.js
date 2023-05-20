@@ -10,8 +10,16 @@ const ContactSchema = Joi.object({
       /\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/
     )
     .required(),
+  favorite: Joi.boolean(),
+});
+
+const updateFavoriteSchema = Joi.object({
+  favorite: Joi.boolean()
+    .required()
+    .messages({ "any.required": "missing field favorite" }),
 });
 
 module.exports = {
   ContactSchema,
+  updateFavoriteSchema,
 };

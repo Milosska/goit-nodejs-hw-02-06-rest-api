@@ -4,10 +4,15 @@ const {
   getContactById,
   addContact,
   updateContact,
+  updateStatusContact,
   removeContact,
 } = require("../../controllers/contactsControllers");
-const { ContactSchema } = require("../../schemas/contactsSchemas");
+const {
+  ContactSchema,
+  updateFavoriteSchema,
+} = require("../../schemas/contactsSchemas");
 const validateContact = require("../../decorators/validateContact");
+const isValidId = require("../../decorators/isValidId");
 
 const router = express.Router();
 router
@@ -16,8 +21,11 @@ router
   .post(validateContact(ContactSchema), addContact);
 router
   .route("/:contactId")
-  .get(getContactById)
-  .put(validateContact(ContactSchema), updateContact)
-  .delete(removeContact);
+  .get(isValidId, getContactById)
+  .put(isValidId, validateContact(ContactSchema), updateContact)
+  .delete(isValidId, removeContact);
+router
+  .route("/:contactId/favorite")
+  .patch(isValidId, validateContact(updateFavoriteSchema), updateStatusContact);
 
 module.exports = router;

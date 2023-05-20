@@ -1,7 +1,7 @@
 const { HttpError } = require("../utils/HttpError");
 
 const validateContact = (schema) => {
-  const func = (req, res, next) => {
+  return (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) {
       throw new HttpError(400, `Missing fields: ${error.message}`);
@@ -9,8 +9,6 @@ const validateContact = (schema) => {
 
     next();
   };
-
-  return func;
 };
 
 module.exports = validateContact;

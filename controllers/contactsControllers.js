@@ -3,8 +3,9 @@ const {
   getContactById,
   addContact,
   updateContact,
+  updateStatusContact,
   removeContact,
-} = require("../models/contacts");
+} = require("../services/contactsServices");
 const ctrlWrapper = require("../decorators/ctrlWrapper");
 
 const getAllContacts = async (req, res, next) => {
@@ -29,6 +30,12 @@ const changeContact = async (req, res, next) => {
   res.json(editedContact);
 };
 
+const changeFavorite = async (req, res, next) => {
+  const { contactId } = req.params;
+  const editedFavoriteContact = await updateStatusContact(contactId, req.body);
+  res.json(editedFavoriteContact);
+};
+
 const deleteContact = async (req, res, next) => {
   const { contactId } = req.params;
   await removeContact(contactId);
@@ -40,5 +47,6 @@ module.exports = {
   getContactById: ctrlWrapper(getContact),
   addContact: ctrlWrapper(addNewContact),
   updateContact: ctrlWrapper(changeContact),
+  updateStatusContact: ctrlWrapper(changeFavorite),
   removeContact: ctrlWrapper(deleteContact),
 };
