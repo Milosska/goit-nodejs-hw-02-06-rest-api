@@ -11,21 +11,27 @@ const {
   ContactSchema,
   updateFavoriteSchema,
 } = require("../../schemas/contactsSchemas");
-const validateContact = require("../../decorators/validateContact");
+const validateSchema = require("../../decorators/validateSchema");
 const isValidId = require("../../decorators/isValidId");
+const authControll = require("../../decorators/authControll");
 
 const router = express.Router();
 router
   .route("/")
-  .get(listContacts)
-  .post(validateContact(ContactSchema), addContact);
+  .get(authControll, listContacts)
+  .post(authControll, validateSchema(ContactSchema), addContact);
 router
   .route("/:contactId")
-  .get(isValidId, getContactById)
-  .put(isValidId, validateContact(ContactSchema), updateContact)
-  .delete(isValidId, removeContact);
+  .get(authControll, isValidId, getContactById)
+  .put(authControll, isValidId, validateSchema(ContactSchema), updateContact)
+  .delete(authControll, isValidId, removeContact);
 router
   .route("/:contactId/favorite")
-  .patch(isValidId, validateContact(updateFavoriteSchema), updateStatusContact);
+  .patch(
+    authControll,
+    isValidId,
+    validateSchema(updateFavoriteSchema),
+    updateStatusContact
+  );
 
 module.exports = router;
