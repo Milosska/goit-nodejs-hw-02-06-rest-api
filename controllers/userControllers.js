@@ -4,6 +4,7 @@ const {
   loginCurrentUser,
   logoutCurrentUser,
   changeUserSubscription,
+  changeUserAvatar,
 } = require("../services/userServices");
 
 const userRegister = async (req, res, next) => {
@@ -34,10 +35,16 @@ const userUpdateSubscriprion = async (req, res, next) => {
   res.status(200).json(changedUserSubscription);
 };
 
+const userUpdateAvatar = async (req, res, next) => {
+  const newAvatarURL = await changeUserAvatar(req.file, req.user);
+  res.status(200).json(newAvatarURL);
+};
+
 module.exports = {
   userRegister: ctrlWrapper(userRegister),
   userLogin: ctrlWrapper(userLogin),
   userLogout: ctrlWrapper(userLogout),
   userGetCurrent: ctrlWrapper(userGetCurrent),
   userUpdateSubscriprion: ctrlWrapper(userUpdateSubscriprion),
+  userUpdateAvatar: ctrlWrapper(userUpdateAvatar),
 };
