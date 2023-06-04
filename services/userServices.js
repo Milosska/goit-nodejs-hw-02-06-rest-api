@@ -6,6 +6,7 @@ const { SECRET_KEY } = process.env;
 const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
+const Jimp = require("jimp");
 
 const createNewUser = async (body) => {
   const { email, password } = body;
@@ -82,8 +83,17 @@ const changeUserSubscription = async (body, user) => {
 const changeUserAvatar = async (file, user) => {
   const { _id } = user;
   const { path: oldPath, filename } = file;
+  const resized = await Jimp.read(oldPath)
+    .then((file) => {
+      return file.resize(250, 250).write(oldPath);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+
+  console.log(resized);
+
   const newPath = `${path.join(process.cwd(), "public", "avatars", filename)}`;
-  console.log(newPath);
   await fs.rename(oldPath, newPath);
   const changedUser = await User.findByIdAndUpdate(
     _id,
