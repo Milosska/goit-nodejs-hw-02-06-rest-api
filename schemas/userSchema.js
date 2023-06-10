@@ -29,8 +29,13 @@ const UserUpdateSubscriptionSchema = Joi.object().keys({
   subscription: UserRegistrationSchema.extract("subscription"),
 });
 
+const EmailSchema = Joi.object().keys({
+  email: UserRegistrationSchema.extract("email"),
+});
+
 module.exports = {
   UserRegistrationSchema,
   UserLoginSchema,
   UserUpdateSubscriptionSchema,
+  EmailSchema,
 };

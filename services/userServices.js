@@ -2,11 +2,13 @@ const { HttpError } = require("../utils/HttpError");
 const { User } = require("../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, BASE_URL } = process.env;
 const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
 const Jimp = require("jimp");
+const crypto = require("crypto");
+const { sendEmail } = require("../utils/SendGridAPI");
 
 const createNewUser = async (body) => {
   const { email, password } = body;
@@ -19,18 +21,57 @@ const createNewUser = async (body) => {
 
   const defaultAvatar = gravatar.url(email);
 
+  const verificationToken = crypto.randomUUID();
+
   const newUser = await User.create({
     ...body,
     password: hashPassword,
     avatarURL: defaultAvatar,
+    verificationToken,
   });
+
+  await sendEmail({
+    to: newUser.email,
+    subject: "Email verification",
+    html: `Please, verify your email by clicking on the <a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">link</a>`,
+  });
+
   return {
     user: {
       email: newUser.email,
       avatarURL: newUser.avatarURL,
       subscription: newUser.subscription,
+      verificationToken: newUser.verificationToken,
     },
   };
+};
+
+const verifyUserEmail = async (token) => {
+  const currentUser = await User.findOne({ verificationToken: token });
+  if (!currentUser) {
+    throw new HttpError(404, "User is not found");
+  }
+  await User.findByIdAndUpdate(currentUser._id, {
+    verify: true,
+    verificationToken: "",
+  });
+};
+
+const resendVerifyUserEmail = async (body) => {
+  const { email } = body;
+  const currentUser = await User.findOne({ email });
+  if (!currentUser) {
+    throw new HttpError(404, "User is not found");
+  }
+  if (currentUser.verify === true) {
+    throw new HttpError(400, "Verification has already been passed");
+  }
+
+  await sendEmail({
+    to: currentUser.email,
+    subject: "Email verification",
+    html: `Please, verify your email by clicking on the <a target="_blank" href="${BASE_URL}/users/verify/${currentUser.verificationToken}">link</a>`,
+  });
 };
 
 const loginCurrentUser = async (body) => {
@@ -38,6 +79,10 @@ const loginCurrentUser = async (body) => {
   const currentUser = await User.findOne({ email });
   if (!currentUser) {
     throw new HttpError(401, "Email or password is wrong");
+  }
+
+  if (!currentUser.verify) {
+    throw new HttpError(401, "Email is not verified");
   }
 
   const passwordCompare = await bcrypt.compare(password, currentUser.password);
@@ -107,6 +152,8 @@ const changeUserAvatar = async (file, user) => {
 
 module.exports = {
   createNewUser,
+  verifyUserEmail,
+  resendVerifyUserEmail,
   loginCurrentUser,
   logoutCurrentUser,
   changeUserSubscription,
