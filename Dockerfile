@@ -4,11 +4,9 @@ FROM node:$VERSION
 
 WORKDIR /app
 
-COPY package.json .
+COPY . .
 
 RUN npm install
-
-COPY . .
 
 EXPOSE 3000
 
@@ -17,4 +15,5 @@ LABEL maintainer="Milosska"
 LABEL description="This is a training project on Node.js written for the contacts app"
 LABEL build-date='2023-06-09'
 
-CMD ["npm", "start"]
+
+CMD ["cross-env", "NODE_ENV=production", "node", "./server.js"]
